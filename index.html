@@ -27,7 +27,11 @@
   .brand{font-family:var(--font-display);font-size:28px;font-weight:600;letter-spacing:-0.01em;}
   .brand span{color:var(--organic-ink);}
   .sub{color:var(--muted);font-size:13px;margin-top:2px;}
-  .month-select{display:flex;align-items:center;gap:8px;}
+  .month-select{display:flex;align-items:center;gap:8px;flex-wrap:wrap;}
+  .range-tabs{display:flex;gap:4px;background:var(--surface-2);padding:3px;border-radius:8px;}
+  .range-tabs button{padding:5px 12px;font-size:12px;border:none;background:transparent;border-radius:6px;}
+  .range-tabs button.active{background:var(--ink);color:var(--bg);}
+  .range-tabs button:hover:not(.active){background:var(--border);}
   select,input{font-family:var(--font-sans);font-size:14px;padding:8px 10px;border:0.5px solid var(--border-strong);border-radius:8px;background:var(--surface);color:var(--ink);}
   button{font-family:var(--font-sans);font-size:14px;padding:9px 16px;border-radius:8px;border:0.5px solid var(--border-strong);background:var(--surface);color:var(--ink);cursor:pointer;}
   button:hover{background:var(--surface-2);}
@@ -103,7 +107,16 @@
       <div class="sub">Paid ads vs organic sales — Shopee (Main + Herbal PH), Lazada, TikTok Shop</div>
     </div>
     <div class="month-select">
+      <div class="range-tabs" id="rangeTabs">
+        <button data-mode="month" class="active">Month</button>
+        <button data-mode="week">Week</button>
+        <button data-mode="custom">Custom</button>
+      </div>
       <select id="monthSelect"></select>
+      <select id="weekSelect" style="display:none"></select>
+      <div id="customRange" style="display:none;align-items:center;gap:6px;">
+        <input type="date" id="customStart"><span style="color:var(--muted);font-size:12px;">to</span><input type="date" id="customEnd">
+      </div>
       <button id="exportBtn">Export CSV</button>
     </div>
   </div>
@@ -111,15 +124,17 @@
   <div class="hero">
     <div class="hero-top">
       <div>
-        <div class="hero-label">Total sales this month</div>
+        <div class="hero-label" id="heroLabel">Total sales this month</div>
         <div class="hero-num" id="heroTotal">₱0</div>
       </div>
-      <div class="hero-target">Quota <span id="quotaVal">₱3,500,000</span></div>
+      <div class="hero-target" id="heroTargetWrap">Quota <span id="quotaVal">₱4,000,000</span></div>
     </div>
-    <div class="bar-track"><div class="bar-fill" id="quotaBar" style="width:0%"></div></div>
-    <div class="hero-foot">
-      <span id="quotaPct">0% of quota</span>
-      <span id="quotaRemain">₱3,500,000 remaining</span>
+    <div id="quotaBarWrap">
+      <div class="bar-track"><div class="bar-fill" id="quotaBar" style="width:0%"></div></div>
+      <div class="hero-foot">
+        <span id="quotaPct">0% of quota</span>
+        <span id="quotaRemain">₱4,000,000 remaining</span>
+      </div>
     </div>
   </div>
 
@@ -182,7 +197,7 @@ const PLATFORMS = [
   { id:'lazada', name:'Lazada', color:'var(--lazada)', hasLive:false },
   { id:'tiktok', name:'TikTok Shop', color:'var(--tiktok-2)', hasLive:true }
 ];
-const QUOTA = 3500000;
+const QUOTA = 4000000;
 let entries = [];
 let activeFilter = 'all';
 let chart = null;
@@ -563,7 +578,23 @@ const SEED_ROWS = [
     {p:'tiktok',d:'2026-06-27',t:52442.7,s:4810.2,a:35380.84,l:20362.63},
     {p:'tiktok',d:'2026-06-28',t:46690.27,s:4891.86,a:38392.92,l:14831.42},
     {p:'tiktok',d:'2026-06-29',t:47015.39,s:4815.31,a:34036.76,l:10756.12},
-    {p:'tiktok',d:'2026-06-30',t:54872.04,s:4260.46,a:22574.1,l:19221.52}
+    {p:'tiktok',d:'2026-06-30',t:54872.04,s:4260.46,a:22574.1,l:19221.52},
+    {p:'shopee_main',d:'2026-07-01',t:50636.0,s:5731.7,a:33946.04,l:0},
+    {p:'shopee_main',d:'2026-07-02',t:42532.0,s:4814.37,a:28513.17,l:0},
+    {p:'shopee_main',d:'2026-07-03',t:37427.0,s:4236.52,a:25090.82,l:0},
+    {p:'shopee_main',d:'2026-07-04',t:26019.0,s:2945.2,a:17442.97,l:0},
+    {p:'shopee_herbal',d:'2026-07-01',t:15465.0,s:0,a:0,l:0},
+    {p:'shopee_herbal',d:'2026-07-02',t:12585.0,s:0,a:0,l:0},
+    {p:'shopee_herbal',d:'2026-07-03',t:14384.0,s:0,a:0,l:0},
+    {p:'shopee_herbal',d:'2026-07-04',t:18483.0,s:0,a:0,l:0},
+    {p:'lazada',d:'2026-07-01',t:17001.5,s:2538.66,a:14720.5,l:0},
+    {p:'lazada',d:'2026-07-02',t:24658.7,s:2564.9,a:16326.5,l:0},
+    {p:'lazada',d:'2026-07-03',t:16156.0,s:2058.3,a:12065.5,l:0},
+    {p:'lazada',d:'2026-07-04',t:10209.4,s:2042.8,a:7274.15,l:0},
+    {p:'tiktok',d:'2026-07-01',t:55474.55,s:5500.0,a:43172.12,l:16493.83},
+    {p:'tiktok',d:'2026-07-02',t:56327.37,s:5500.0,a:38188.52,l:18652.91},
+    {p:'tiktok',d:'2026-07-03',t:65257.86,s:5500.0,a:41904.98,l:24652.52},
+    {p:'tiktok',d:'2026-07-04',t:48482.85,s:5500.0,a:43075.2,l:18363.19}
   ];
 
 function seedData(){
@@ -572,7 +603,7 @@ function seedData(){
   }));
 }
 
-const DATA_VERSION = 'v3-lazada-daily';
+const DATA_VERSION = 'v4-july-data';
 
 async function loadEntries(){
   try{
@@ -678,6 +709,33 @@ function deleteEntry(id){
   render();
 }
 
+let viewMode = 'month';
+
+function pad2(n){ return String(n).padStart(2,'0'); }
+function fmtDate(d){ return `${d.getFullYear()}-${pad2(d.getMonth()+1)}-${pad2(d.getDate())}`; }
+function parseDate(s){ const [y,m,d] = s.split('-').map(Number); return new Date(y, m-1, d); }
+function addDays(dateStr, n){ const d = parseDate(dateStr); d.setDate(d.getDate()+n); return fmtDate(d); }
+function lastDayOfMonth(m){ const [y,mo] = m.split('-').map(Number); return fmtDate(new Date(y, mo, 0)); }
+
+function getAllWeeks(){
+  const dates = Array.from(new Set(entries.map(e=>e.date))).sort();
+  if(dates.length===0) return [];
+  const minD = parseDate(dates[0]);
+  const maxD = parseDate(dates[dates.length-1]);
+  let d = new Date(minD);
+  const shift = (d.getDay()+6)%7; // Monday=0
+  d.setDate(d.getDate()-shift);
+  const weeks = [];
+  while(d <= maxD){
+    const start = fmtDate(d);
+    const endD = new Date(d); endD.setDate(endD.getDate()+6);
+    const end = fmtDate(endD);
+    weeks.push({start, end});
+    d.setDate(d.getDate()+7);
+  }
+  return weeks;
+}
+
 function initMonthSelect(){
   let months = Array.from(new Set(entries.map(e => monthKey(e.date))));
   months.sort();
@@ -694,6 +752,52 @@ function initMonthSelect(){
     return `<option value="${m}">${label}</option>`;
   }).join('');
   sel.value = defaultMonth;
+
+  const weekSel = document.getElementById('weekSelect');
+  const weeks = getAllWeeks();
+  const prevWeek = weekSel.value;
+  weekSel.innerHTML = weeks.map(w => {
+    const sD = parseDate(w.start), eD = parseDate(w.end);
+    const label = `${sD.toLocaleDateString('en-US',{month:'short',day:'numeric'})} – ${eD.toLocaleDateString('en-US',{month:'short',day:'numeric',year:'numeric'})}`;
+    return `<option value="${w.start}|${w.end}">${label}</option>`;
+  }).join('');
+  if(weeks.length){
+    const stillValid = weeks.some(w => `${w.start}|${w.end}` === prevWeek);
+    weekSel.value = stillValid ? prevWeek : `${weeks[weeks.length-1].start}|${weeks[weeks.length-1].end}`;
+  }
+
+  const custStart = document.getElementById('customStart');
+  const custEnd = document.getElementById('customEnd');
+  if(!custStart.value && dates_exist()){
+    custStart.value = months.length ? `${months[0]}-01` : todayStr();
+    custEnd.value = todayStr();
+  }
+  function dates_exist(){ return entries.length > 0; }
+}
+
+function setRangeMode(mode){
+  viewMode = mode;
+  document.querySelectorAll('#rangeTabs button').forEach(b => b.classList.toggle('active', b.dataset.mode===mode));
+  document.getElementById('monthSelect').style.display = mode==='month' ? '' : 'none';
+  document.getElementById('weekSelect').style.display = mode==='week' ? '' : 'none';
+  document.getElementById('customRange').style.display = mode==='custom' ? 'flex' : 'none';
+  document.getElementById('quotaBarWrap').style.display = mode==='month' ? '' : 'none';
+  document.getElementById('heroTargetWrap').style.display = mode==='month' ? '' : 'none';
+  render();
+}
+
+function getSelectedRange(){
+  if(viewMode === 'week'){
+    const v = document.getElementById('weekSelect').value;
+    if(v){ const [start,end] = v.split('|'); return {start, end}; }
+  }
+  if(viewMode === 'custom'){
+    const start = document.getElementById('customStart').value;
+    const end = document.getElementById('customEnd').value;
+    if(start && end) return {start, end: end < start ? start : end};
+  }
+  const month = getSelectedMonth();
+  return { start: month+'-01', end: lastDayOfMonth(month) };
 }
 
 function getSelectedMonth(){
@@ -713,10 +817,13 @@ function computeStats(list){
 }
 
 function render(){
-  const month = getSelectedMonth();
-  const monthEntries = entries.filter(e => monthKey(e.date) === month);
+  const range = getSelectedRange();
+  const rangeEntries = entries.filter(e => e.date >= range.start && e.date <= range.end);
 
-  const s = computeStats(monthEntries);
+  const heroLabelText = viewMode==='month' ? 'Total sales this month' : viewMode==='week' ? 'Total sales this week' : 'Total sales (custom range)';
+  document.getElementById('heroLabel').textContent = heroLabelText;
+
+  const s = computeStats(rangeEntries);
   document.getElementById('heroTotal').textContent = peso(s.total);
   document.getElementById('quotaVal').textContent = peso(QUOTA);
   const pct = Math.min(100, (s.total/QUOTA)*100);
@@ -737,10 +844,10 @@ function render(){
   else{ badge.textContent = 'below target'; badge.className = 'roas-badge roas-bad'; }
 
   PLATFORMS.forEach(p => {
-    const pe = monthEntries.filter(e => e.platform === p.id);
+    const pe = rangeEntries.filter(e => e.platform === p.id);
     const ps = computeStats(pe);
     document.getElementById('stats-'+p.id).innerHTML = `
-      <span>MTD total<b>${peso(ps.total)}</b></span>
+      <span>Total<b>${peso(ps.total)}</b></span>
       <span>Paid ads<b>${peso(ps.netPaid)}</b></span>
       <span>Organic<b>${peso(ps.organic)}</b></span>
       <span>ROAS<b>${ps.roas.toFixed(1)}x</b></span>
@@ -749,8 +856,8 @@ function render(){
   });
 
   renderFilterTabs();
-  renderChart(monthEntries);
-  renderLog(monthEntries);
+  renderChart(rangeEntries);
+  renderLog(rangeEntries);
 }
 
 function renderFilterTabs(){
@@ -835,6 +942,12 @@ function renderLog(monthEntries){
 }
 
 document.getElementById('monthSelect').addEventListener('change', render);
+document.getElementById('weekSelect').addEventListener('change', render);
+document.getElementById('customStart').addEventListener('change', render);
+document.getElementById('customEnd').addEventListener('change', render);
+document.querySelectorAll('#rangeTabs button').forEach(btn => {
+  btn.addEventListener('click', () => setRangeMode(btn.dataset.mode));
+});
 
 document.getElementById('resetBtn').addEventListener('click', () => {
   if(confirm('Sigurado ka bang gusto mong burahin lahat ng data? Hindi na ito mababawi.')){
@@ -846,10 +959,10 @@ document.getElementById('resetBtn').addEventListener('click', () => {
 });
 
 document.getElementById('exportBtn').addEventListener('click', () => {
-  const month = getSelectedMonth();
-  const monthEntries = entries.filter(e => monthKey(e.date) === month);
+  const range = getSelectedRange();
+  const rangeEntries = entries.filter(e => e.date >= range.start && e.date <= range.end);
   let csv = 'Date,Platform,Total Sales,Ad Spend,Ad Sales,Live Sales,Organic Sales,ROAS\n';
-  monthEntries.forEach(e => {
+  rangeEntries.forEach(e => {
     const plat = PLATFORMS.find(p=>p.id===e.platform).name;
     const organic = e.total - e.adSales;
     const roas = e.spend>0 ? (e.adSales/e.spend).toFixed(2) : '';
@@ -858,7 +971,7 @@ document.getElementById('exportBtn').addEventListener('click', () => {
   const blob = new Blob([csv], {type:'text/csv'});
   const url = URL.createObjectURL(blob);
   const a = document.createElement('a');
-  a.href = url; a.download = `easebrew-sales-${month}.csv`;
+  a.href = url; a.download = `easebrew-sales-${range.start}_to_${range.end}.csv`;
   a.click();
   URL.revokeObjectURL(url);
 });
